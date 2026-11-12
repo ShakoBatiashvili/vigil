@@ -63,6 +63,9 @@ else
   [ -z "$(find "$APP" -name '*.framework' -o -name '*.dylib' 2>/dev/null)" ] \
     && pass "No bundled frameworks or dylibs (nothing to swap or update)" || fail "No bundled frameworks or dylibs" "$(find "$APP" -name '*.framework' -o -name '*.dylib')"
 
+  extra="$(find "$APP/Contents/Resources" -type f ! -name 'AppIcon.icns' 2>/dev/null)"
+  [ -z "$extra" ] && pass "Resources contain only the app icon" || fail "Resources contain only the app icon" "$extra"
+
   net="$(otool -L "$APP/Contents/MacOS/Vigil" | grep -E 'WebKit|Network\.framework|MultipeerConnectivity' || true)"
   [ -z "$net" ] && pass "Executable does not link WebKit or Network.framework" || fail "Executable does not link WebKit or Network.framework" "$net"
 

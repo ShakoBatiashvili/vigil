@@ -1,4 +1,4 @@
-.PHONY: test app audit install snapshot clean
+.PHONY: test app audit install snapshot icon clean
 
 test:        ## Run all unit and real-system tests
 	swift test
@@ -15,6 +15,9 @@ install: app ## Install into ~/Applications (no sudo)
 snapshot:    ## Render the UI to PNGs from canned data (light + dark)
 	swift build --product VigilApp
 	.build/debug/VigilApp --snapshot dist/snapshots
+
+icon:        ## Regenerate assets/AppIcon.icns from scripts/make-icon.swift
+	scripts/make-icon.sh
 
 clean:
 	rm -rf .build dist
