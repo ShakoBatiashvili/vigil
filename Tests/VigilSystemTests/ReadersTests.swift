@@ -53,6 +53,17 @@ struct ProcessListerTests {
 
     // MARK: launch name (argv[0])
 
+    /// A brand-new executable can take a moment to start (macOS vets it first), and until it has
+    /// exec'd, the process still reports its pre-exec identity. Poll; never sleep a fixed time.
+    private func waitUntil(timeout: TimeInterval = 5, _ condition: () -> Bool) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if condition() { return true }
+            Thread.sleep(forTimeInterval: 0.05)
+        }
+        return condition()
+    }
+
     private func spawnViaSymlink(named linkName: String, to target: String) throws -> (child: Process, cleanup: () -> Void) {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("vigil-link-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -71,10 +82,11 @@ struct ProcessListerTests {
     @Test func launchNameIsWhatTheProcessWasStartedAs() throws {
         let (child, cleanup) = try spawnViaSymlink(named: "vigiltestlink", to: "/bin/sleep")
         defer { cleanup() }
-        Thread.sleep(forTimeInterval: 0.2)
-        #expect(ProcessLister.launchName(pid: child.processIdentifier) == "vigiltestlink")
+        let pid = child.processIdentifier
+        #expect(waitUntil { ProcessLister.launchName(pid: pid) == "vigiltestlink" && ProcessLister.processName(pid: pid) == "sleep" })
+        #expect(ProcessLister.launchName(pid: pid) == "vigiltestlink")
         // The kernel's own idea of the name is the resolved executable.
-        #expect(ProcessLister.processName(pid: child.processIdentifier) == "sleep")
+        #expect(ProcessLister.processName(pid: pid) == "sleep")
     }
 
     @Test func launchNameWorksForTheCurrentProcessAndFailsCleanlyForAMissingOne() {
@@ -97,9 +109,9 @@ struct ProcessListerTests {
         child.arguments = ["20"]
         try child.run()
         defer { if child.isRunning { child.terminate() } }
-        Thread.sleep(forTimeInterval: 0.3)
 
         let pid = child.processIdentifier
+        #expect(waitUntil { ProcessLister.executablePath(pid: pid)?.hasSuffix("/9.9.9") == true })
         let path = ProcessLister.executablePath(pid: pid)
         #expect(path?.hasSuffix("/9.9.9") == true)
         #expect(ProcessLister.displayName(pid: pid, path: path) == "fancytool")

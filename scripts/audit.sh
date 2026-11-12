@@ -39,9 +39,15 @@ else
 fi
 [ -e Package.resolved ] && fail "No lockfile of external packages" "Package.resolved exists" || pass "No Package.resolved (nothing external to pin)"
 
+script_version="$(sed -n 's/^VERSION="\(.*\)"$/\1/p' scripts/build-app.sh)"
+code_version="$(sed -n 's/.*public static let version = "\(.*\)"/\1/p' Sources/VigilCore/CLIParser.swift)"
+[ -n "$script_version" ] && [ "$script_version" = "$code_version" ] \
+  && pass "Version is consistent (build script and CLI both say $script_version)" \
+  || fail "Version is consistent" "scripts/build-app.sh: '$script_version'  Sources/VigilCore/CLIParser.swift: '$code_version'"
+
 echo
 echo "Built app checks"
-APP="dist/Vigil.app"
+APP="${APP:-dist/Vigil.app}"   # override to audit a build elsewhere
 if [ ! -d "$APP" ]; then
   note "dist/Vigil.app not found; run scripts/build-app.sh to check the binary too"
 else
@@ -69,8 +75,14 @@ else
   net="$(otool -L "$APP/Contents/MacOS/Vigil" | grep -E 'WebKit|Network\.framework|MultipeerConnectivity' || true)"
   [ -z "$net" ] && pass "Executable does not link WebKit or Network.framework" || fail "Executable does not link WebKit or Network.framework" "$net"
 
-  urls="$(strings -a "$APP/Contents/MacOS/Vigil" "$APP/Contents/Helpers/vigil" 2>/dev/null \
-    | grep -oE 'https?://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+' \
+  # Raw byte scan of the whole bundle (not `strings`, which only reads Mach-O sections and can miss data).
+  homes="$(LC_ALL=C grep -raoE '/Users/[A-Za-z0-9._-]+' "$APP" 2>/dev/null | sed 's/^[^:]*://' \
+    | grep -vxF '/Users/Shared' | sort -u || true)"
+  [ -z "$homes" ] && pass "No build-machine home path or username in the binaries" \
+    || fail "No build-machine home path or username in the binaries" "$homes"
+
+  urls="$(LC_ALL=C grep -aoE 'https?://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+' \
+      "$APP/Contents/MacOS/Vigil" "$APP/Contents/Helpers/vigil" 2>/dev/null \
     | grep -vE 'apple\.com|w3\.org|swift\.org|schemas\.|ns\.adobe|purl\.org' | sort -u || true)"
   [ -z "$urls" ] && pass "No hard-coded URLs in the binaries (beyond Apple/standards namespaces)" \
     || fail "No hard-coded URLs in the binaries" "$urls"

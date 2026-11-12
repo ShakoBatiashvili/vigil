@@ -6,11 +6,17 @@ cd "$(dirname "$0")/.."
 
 VERSION="0.1.0"
 APP="dist/Vigil.app"
+BUNDLE_ID="io.github.shakobatiashvili.vigil"
+
+# Extra flags for `swift build`. Homebrew's build sandbox needs SWIFTPM_FLAGS=--disable-sandbox
+# (SwiftPM's own sandbox cannot nest inside it); normal builds leave this empty.
+SWIFTPM_FLAGS="${SWIFTPM_FLAGS:-}"
 
 echo "==> Building (release)"
-swift build -c release --product VigilApp
-swift build -c release --product vigil
-BIN="$(swift build -c release --show-bin-path)"
+# shellcheck disable=SC2086  # SWIFTPM_FLAGS is intentionally word-split
+swift build $SWIFTPM_FLAGS -c release --product VigilApp
+swift build $SWIFTPM_FLAGS -c release --product vigil
+BIN="$(swift build $SWIFTPM_FLAGS -c release --show-bin-path)"
 
 echo "==> Assembling $APP"
 rm -rf "$APP"
@@ -18,6 +24,10 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Helpers" "$APP/Contents/Resources"
 cp "$BIN/VigilApp" "$APP/Contents/MacOS/Vigil"
 cp "$BIN/vigil" "$APP/Contents/Helpers/vigil"
 cp assets/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+
+# Drop debug symbols and local symbols: they carry absolute build paths (the object-file
+# map points into your home folder). Stripping happens before signing, so the signature stays valid.
+strip -x -S "$APP/Contents/MacOS/Vigil" "$APP/Contents/Helpers/vigil"
 
 # Deliberately minimal: a menu-bar agent (no Dock icon), no URL scheme, no
 # privacy usage descriptions (Vigil reads no location, Bluetooth or calendar data).
@@ -28,7 +38,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <dict>
 	<key>CFBundleName</key><string>Vigil</string>
 	<key>CFBundleDisplayName</key><string>Vigil</string>
-	<key>CFBundleIdentifier</key><string>local.vigil.app</string>
+	<key>CFBundleIdentifier</key><string>${BUNDLE_ID}</string>
 	<key>CFBundleExecutable</key><string>Vigil</string>
 	<key>CFBundleIconFile</key><string>AppIcon</string>
 	<key>CFBundlePackageType</key><string>APPL</string>
