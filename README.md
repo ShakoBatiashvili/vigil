@@ -76,7 +76,6 @@ idle-sleeping in that setup. Closing the lid with nothing connected sleeps the M
 - Manual sessions do not survive quitting the app, on purpose.
 - "Launch at login" uses `SMAppService` and may need approval in System Settings; it only works from the installed `Vigil.app`.
 - Idle footprint: about 0% CPU; about 85 MB resident (SwiftUI baseline).
-- No license has been chosen yet. Add one before sharing outside your team.
 - Not verified in the build session: clicking the real menu-bar icon (verified instead: launch, hold, release, no network, idle cost, and rendered screenshots of every state in light and dark).
 
 ## Development
@@ -87,7 +86,13 @@ Sources/VigilSystem   thin adapters: IOKit assertions, battery, libproc, /usr/bi
 Sources/vigil         the CLI (parse, dispatch, print).
 Sources/VigilApp      the SwiftUI menu-bar app (orchestration + views).
 Tests/                 unit tests for the core; real-system tests (no mocks) for the adapters.
+assets/AppIcon.icns   the app icon, generated from code by scripts/make-icon.swift (`make icon`).
 ```
 
 `make test` runs everything. `make snapshot` renders the UI from canned data (light and dark) to `dist/snapshots`.
 See `docs/DESIGN.md` for the decisions behind it and `SECURITY.md` for the threat model.
+
+## License
+
+MIT. See [LICENSE](LICENSE). Vigil is written from scratch against Apple's public APIs; no code from other
+keep-awake apps is included.

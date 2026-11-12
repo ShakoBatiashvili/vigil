@@ -62,7 +62,5 @@ app was run end to end (rule engages the assertion; releases after the watched p
 
 ## Open items
 
-- Choose a license before sharing beyond the team.
-- An app icon (the bundle uses the generic one).
 - Launch-at-login (`SMAppService`) needs a real-world check on a machine where it can be approved.
 - Optional: collapse the Rules tab's Schedule section behind a disclosure if the tab feels long.
