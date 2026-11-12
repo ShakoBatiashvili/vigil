@@ -1,0 +1,19 @@
+name: Feature request
+description: Suggest an improvement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Vigil is deliberately small: no network, no root, no third-party code, no private APIs. Ideas that need one of
+        those are out of scope (see docs/DESIGN.md), but everything else is welcome.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What do you have in mind?

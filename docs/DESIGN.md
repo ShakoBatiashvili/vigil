@@ -13,7 +13,7 @@ surface. It is written from scratch against Apple's public APIs; no code is deri
 | Decision | Why | Rejected |
 |---|---|---|
 | **No root, ever.** Closed-lid works only in macOS's native clamshell mode. | Root helper plus auto-update was the main reason the original was rejected. | Narrow sudoers rule; admin-password prompt per toggle; persistent LaunchDaemon over XPC |
-| **Source-only distribution** to a few teammates; each builds locally. | No Developer ID or notarization pipeline to maintain; nobody trusts a binary they didn't build. | Signed + notarized download |
+| **Source-only distribution.** Public repo; a Homebrew formula builds a tagged release on the user's Mac; no prebuilt binaries. | Nobody has to trust a binary they didn't build, a locally built app has no download quarantine (so no Gatekeeper dialog), and there is no Developer ID or notarization pipeline to maintain. | A prebuilt, notarized cask (needs a paid Developer ID); an un-notarized prebuilt download (blocked by Gatekeeper) |
 | **Features:** presets/timers, app and schedule rules, battery guard, battery + drain view, awake-holders view. | The user's list. A foreground-visibility tool beats a feature checklist. | Wi-Fi/Bluetooth/Calendar triggers (each needs a privacy permission), Claude Code hook integration (edits other tools' config; Claude Code already runs its own `caffeinate`), AC-power trigger |
 | **Battery guard releases below 20% on battery**; a deliberate restart continues to a 5% floor; rules never override it. | A forgotten hold once ran for 3+ days on battery. | Hard time cap; no guard |
 | **No IPC.** CLI and app each hold their own assertion. | Nothing to authenticate or attack. | URL scheme, XPC, sockets |
@@ -60,7 +60,17 @@ holder's claims) before being relied on.
 The UI is reviewed through rendered screenshots (`make snapshot`) of every state in light and dark, and the built
 app was run end to end (rule engages the assertion; releases after the watched process exits; no sockets; idle cost).
 
+Tests that start processes poll for the expected state instead of sleeping a fixed time: a brand-new executable can
+take a moment to exec while macOS vets it, and a fixed sleep made one test flaky. CI runs the suite on every push.
+
+The audit (`scripts/audit.sh`) is itself mutation-tested: planted network calls, shell strings, home paths and URLs
+must make it fail. That caught a real blind spot: scanning binaries with `strings` misses bytes outside the Mach-O
+segments, and a raw byte scan found build paths (the author's home folder) embedded in the binaries. The fix: strip
+debug symbols before signing and make `#file` module-relative.
+
 ## Open items
 
 - Launch-at-login (`SMAppService`) needs a real-world check on a machine where it can be approved.
+- macOS 14 and Intel Macs are untested (CI covers macOS 15 on Apple silicon).
 - Optional: collapse the Rules tab's Schedule section behind a disclosure if the tab feels long.
+- If there is demand: a notarized prebuilt cask (requires a paid Apple Developer ID).
