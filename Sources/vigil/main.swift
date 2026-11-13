@@ -133,6 +133,7 @@ func runHold(mode: SessionMode, display: Bool) -> Never {
         }
     }
     print("Holding this Mac awake \(describe(mode))\(display ? ", display on" : "").")
+    if !display { print("\(HoldSummary.screenMayTurnOff) Add --display to keep it on.") }
     if state.guardOverride, let percent = battery.percent {
         print("Battery is at \(percent)%, below your \(settings.batteryThreshold)% guard. Continuing because you asked; "
               + "the guard still stops it at \(Settings.thresholdRange.lowerBound)%.")

@@ -75,6 +75,8 @@ If you enabled *Launch at login*, also remove Vigil under System Settings, Gener
 
 - **Top:** the master switch and presets. Tap an active preset again to stop. *Until…* opens a time picker.
 - **Drain / Awake / Rules** tabs. *Awake* shows a warning mark when something has held the Mac awake for 12 h+.
+- **The screen can still turn off while Vigil holds.** That is normal: only the display sleeps, while the Mac, its
+  network and your running work stay awake. Tap *Keep screen on* (or enable it in Rules) if you want it lit.
 - **Rules** is where the battery threshold, "also keep the display on", watched apps and the schedule live.
   Everything applies immediately and is written to disk about half a second later ("Saved" appears only after the write lands).
 

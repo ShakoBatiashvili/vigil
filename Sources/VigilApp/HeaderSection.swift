@@ -53,6 +53,22 @@ struct HeaderSection: View {
 
             if choosingTime { untilRow.transition(.opacity.combined(with: .move(edge: .top))) }
 
+            if let note = HoldSummary.displayNote(decision: model.decision) {
+                HStack(spacing: 6) {
+                    Label(note, systemImage: "display")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 4)
+                    Button("Keep screen on") { model.setKeepDisplayOn(true) }
+                        .buttonStyle(.plain)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Theme.hold)
+                        .fixedSize()
+                }
+            }
+
             if let note = model.overrideNote {
                 Label(note, systemImage: "battery.25")
                     .font(.caption)

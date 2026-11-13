@@ -45,6 +45,15 @@ public enum HoldSummary {
     }
 }
 
+extension HoldSummary {
+    /// Shown while holding with the display allowed to sleep: a dark screen is not a sleeping Mac.
+    public static let screenMayTurnOff = "The screen can still turn off. Your Mac stays awake."
+
+    public static func displayNote(decision: Decision) -> String? {
+        decision.hold && !decision.holdDisplay ? screenMayTurnOff : nil
+    }
+}
+
 public struct Notice: Equatable, Sendable {
     public var title: String
     public var body: String

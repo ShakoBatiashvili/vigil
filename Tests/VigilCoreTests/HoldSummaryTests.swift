@@ -88,6 +88,24 @@ struct HoldSummaryTests {
         #expect(text(20) == "<1m")
     }
 
+    // MARK: display note (the screen turning off is not the Mac sleeping)
+
+    @Test func noDisplayNoteWhenNothingIsHeld() {
+        #expect(HoldSummary.displayNote(decision: decision(hold: false, reasons: [])) == nil)
+    }
+
+    @Test func noDisplayNoteWhenTheDisplayIsHeldToo() {
+        let d = Decision(hold: true, holdDisplay: true, reasons: [.manual(until: nil)], blockedByGuard: false, effects: [])
+        #expect(HoldSummary.displayNote(decision: d) == nil)
+    }
+
+    @Test func explainsThatTheScreenCanTurnOffWhileTheMacStaysAwake() {
+        let note = HoldSummary.displayNote(decision: decision(reasons: [.process("Xcode")]))
+        #expect(note == HoldSummary.screenMayTurnOff)
+        #expect(note?.contains("screen") == true)
+        #expect(note?.contains("stays awake") == true)
+    }
+
     // MARK: notifications
 
     @Test func guardNoticeMentionsThePercentageAndTheThreshold() {
